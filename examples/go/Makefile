@@ -1,4 +1,4 @@
-REPO=sigmonsays.git/git-watch
+REPO=github.com/sigmonsays/git-watch
 
 all:
 	go get -u $(REPO)/examples/go/my_application/...
