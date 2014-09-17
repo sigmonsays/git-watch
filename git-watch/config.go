@@ -3,7 +3,7 @@ import (
    "os"
    "fmt"
    "bytes"
-   "launchpad.net/goyaml.git"
+   "launchpad.net/goyaml"
 )
 
 type GitWatchConfig struct {

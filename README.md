@@ -6,9 +6,16 @@ watch a git repository for changes and execute update commands
 features
 =============================
 
-- minimal dependancies
+- be generic as possible
+- minimal dependencies
+- intelligent restart
+  - if install fails, we do not restart
 
+install
+=============================
 
+    go get github.com/sigmonsays/git-watch/git-watch/...
+   
 quickstart
 =============================
 
@@ -32,8 +39,8 @@ an example which rebuilds a docker container when upstream changes are detected
 
     start:
        docker stop api
-       ocker rm api
-       ocker run -i --rm --name api api
+       docker rm api
+       docker run -i --rm --name api api
 
 
 Then simply start git-watch in the git checkout directory and it'll begin monitoring it for changes. 
