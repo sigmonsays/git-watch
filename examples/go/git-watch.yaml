@@ -5,3 +5,4 @@ checkinterval: 5
 localbranch: master
 execcmd: my_application
 updatecmd: make
+install: make install
