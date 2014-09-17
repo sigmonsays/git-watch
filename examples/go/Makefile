@@ -1,7 +1,7 @@
 REPO=sigmonsays.git/git-watch
 
 all:
-	go get -u $REPO/examples/go/my_application
+	go get -u $(REPO)/examples/go/my_application/...
 
 install:
-	go install $REPO/examples/go/my_application
+	go install $(REPO)/examples/go/my_application
