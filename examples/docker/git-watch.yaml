@@ -1,0 +1,6 @@
+# restart a container when changes are detected in a git remote
+checkinterval: 5
+localbranch: master
+execcmd: ./start.sh
+updatecmd: ./build.sh 
+installcmd: true
