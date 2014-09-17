@@ -1,6 +1,7 @@
 # reinstall a go application when changes are detected in a git remote
 env:
    - GOPATH=/tmp/application
+   - EXAMPLE=1
 checkinterval: 5
 localbranch: master
 execcmd: my_application
