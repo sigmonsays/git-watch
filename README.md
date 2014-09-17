@@ -19,7 +19,14 @@ install
 quickstart
 =============================
 
-an example which rebuilds a docker container when upstream changes are detected
+Usage:
+
+    Usage of git-watch:
+      -check=30: git check interval
+      -config="git-watch.yaml": git watch config
+
+an example which rebuilds a docker container when upstream changes are detected. See
+the examples directory for more options.
 
 **git-watch.yaml**
 
