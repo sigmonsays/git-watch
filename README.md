@@ -15,6 +15,10 @@ install
 =============================
 
     go get github.com/sigmonsays/git-watch/git-watch/...
+
+pre-compiled binaries    
+=============================
+See http://gobuild.io/github.com/sigmonsays/git-watch/git-watch
    
 quickstart
 =============================
