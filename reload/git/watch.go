@@ -61,6 +61,9 @@ func remote_hash(dir, branch string) string {
 		return ""
 	}
 	tmp := strings.Fields(string(out))
+	if len(tmp) < 1 {
+		return ""
+	}
 	return tmp[0]
 }
 
