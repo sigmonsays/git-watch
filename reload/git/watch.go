@@ -86,9 +86,11 @@ func loop(watch *GitWatch, err_chan chan error) {
 	for {
 		select {
 		case <-reload.C:
-			log.Debugf("Checking for changes in git path %s\n", dir)
+			log.Tracef("Checking for changes in git path %s\n", dir)
 			rhash := remote_hash(dir, branch)
 			lhash := local_hash(dir, branch)
+
+			log.Debugf("git directory:%s lhash:%s rhash:%s", dir, lhash, rhash)
 
 			if len(rhash) == 0 || len(lhash) == 0 {
 				continue

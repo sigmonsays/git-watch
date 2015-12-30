@@ -42,6 +42,7 @@ func main() {
 	cfg.PrintConfig()
 
 	logging.SetLogLevel(cfg.LogLevel)
+	logging.SetLogLevels(cfg.LogLevels)
 
 	if cfg.Dir != "" {
 		log.Infof("chdir %s\n", cfg.Dir)

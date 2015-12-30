@@ -8,7 +8,9 @@ import (
 )
 
 type GitWatchConfig struct {
-	LogLevel      string
+	LogLevel  string
+	LogLevels map[string]string
+
 	CheckInterval int
 
 	Dir string
