@@ -79,9 +79,13 @@ func loop(watch *GitWatch, err_chan chan error) {
 	err_chan <- nil
 
 	log.Infof("watching %s directory for changes", dir)
+
+	reload_interval := time.Duration(interval) * time.Second
+	log.Debugf("reload interval %s", reload_interval)
+	reload := time.NewTicker(reload_interval)
 	for {
 		select {
-		case <-time.After(time.Duration(interval) * time.Second):
+		case <-reload.C:
 			log.Debugf("Checking for changes in git path %s\n", dir)
 			rhash := remote_hash(dir, branch)
 			lhash := local_hash(dir, branch)

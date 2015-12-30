@@ -77,8 +77,5 @@ func (conf *GitWatchConfig) PrintConfig() {
 
 func (c *GitWatchConfig) FixupConfig() error {
 
-	if len(c.Env) == 0 {
-		c.Env = os.Environ()
-	}
 	return nil
 }

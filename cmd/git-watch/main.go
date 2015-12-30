@@ -7,7 +7,12 @@ import (
 	"syscall"
 
 	"github.com/sigmonsays/git-watch/reload/git"
+	"github.com/sigmonsays/go-logging"
 )
+
+func Printf(s string, args ...interface{}) {
+	log.Infof(s, args...)
+}
 
 func main() {
 
@@ -24,7 +29,9 @@ func main() {
 	flag.Parse()
 
 	cfg := DefaultGitWatchConfig()
-	cfg.CheckInterval = check_interval
+	if check_interval > 0 {
+		cfg.CheckInterval = check_interval
+	}
 
 	err := cfg.FromFile(configfile)
 	if err != nil {
@@ -34,14 +41,17 @@ func main() {
 
 	cfg.PrintConfig()
 
+	logging.SetLogLevel(cfg.LogLevel)
+
 	if cfg.Dir != "" {
 		log.Infof("chdir %s\n", cfg.Dir)
 		os.Chdir(cfg.Dir)
 	}
 
-	go program(cfg.ExecCmd, done, quit)
+	go program(cfg, cfg.ExecCmd, done, quit)
 
 	gw := git.NewGitWatch(cfg.Dir, cfg.LocalBranch)
+	gw.Interval = cfg.CheckInterval
 	gw.OnChange = func(dir, branch, lhash, rhash string) error {
 		quit <- true
 		return nil
@@ -58,7 +68,7 @@ Loop:
 		select {
 		case <-done:
 			log.Infof("Restarting process..\n")
-			go program(cfg.ExecCmd, done, quit)
+			go program(cfg, cfg.ExecCmd, done, quit)
 		case signum := <-sig:
 			log.Infof("Got signal %d\n", signum)
 			if signum == syscall.SIGHUP {
