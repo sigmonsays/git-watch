@@ -63,7 +63,7 @@ func program(cfg *GitWatchConfig, cmdline string, done, quit chan bool) {
 	cmd.Stderr = os.Stderr
 
 	if cfg.InheritEnv == false {
-		log.Tracef("Setting custom environment %v\n", cfg.Env)
+		log.Tracef("Setting custom environment items:%d\n", len(cfg.Env))
 		cmd.Env = cfg.Env
 	}
 
