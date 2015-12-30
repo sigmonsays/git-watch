@@ -66,10 +66,9 @@ func main() {
 	for _, gitrepo := range cfg.GitRepos {
 		cfg2 := *cfg
 		cfg2.Dir = gitrepo
-		log.Infof("also watching git repo %s", gitrepo)
 
-		gw := git.NewGitWatch(cfg.Dir, cfg.LocalBranch)
-		gw.Interval = cfg.CheckInterval
+		gw := git.NewGitWatch(cfg2.Dir, cfg2.LocalBranch)
+		gw.Interval = cfg2.CheckInterval
 		gw.OnChange = func(dir, branch, lhash, rhash string) error {
 			quit <- true
 			return nil
