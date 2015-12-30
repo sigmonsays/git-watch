@@ -23,6 +23,8 @@ func run_command(name string, cmdline ...string) error {
 }
 
 func do_update(cfg *GitWatchConfig) error {
+
+	log.Infof("updating %s", cfg.Dir)
 	err := run_command("git", "-C", cfg.Dir, "pull")
 	if err != nil {
 		return err

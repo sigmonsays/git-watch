@@ -54,6 +54,10 @@ func main() {
 	gw := git.NewGitWatch(cfg.Dir, cfg.LocalBranch)
 	gw.Interval = cfg.CheckInterval
 	gw.OnChange = func(dir, branch, lhash, rhash string) error {
+		err := do_update(cfg)
+		if err != nil {
+			return err
+		}
 		quit <- true
 		return nil
 	}
@@ -65,12 +69,16 @@ func main() {
 
 	// startup other repos
 	for _, gitrepo := range cfg.GitRepos {
-		cfg2 := *cfg
+		cfg2 := &(*cfg)
 		cfg2.Dir = gitrepo
 
 		gw := git.NewGitWatch(cfg2.Dir, cfg2.LocalBranch)
 		gw.Interval = cfg2.CheckInterval
 		gw.OnChange = func(dir, branch, lhash, rhash string) error {
+			err := do_update(cfg2)
+			if err != nil {
+				return err
+			}
 			quit <- true
 			return nil
 		}
