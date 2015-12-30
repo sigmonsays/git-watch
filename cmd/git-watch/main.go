@@ -56,11 +56,29 @@ func main() {
 		quit <- true
 		return nil
 	}
-
 	err = gw.Start()
 	if err != nil {
 		log.Infof("start: %s", err)
 		return
+	}
+
+	// startup other repos
+	for _, gitrepo := range cfg.GitRepos {
+		cfg2 := *cfg
+		cfg2.Dir = gitrepo
+		log.Infof("also watching git repo %s", gitrepo)
+
+		gw := git.NewGitWatch(cfg.Dir, cfg.LocalBranch)
+		gw.Interval = cfg.CheckInterval
+		gw.OnChange = func(dir, branch, lhash, rhash string) error {
+			quit <- true
+			return nil
+		}
+		err = gw.Start()
+		if err != nil {
+			log.Infof("start: %s", err)
+			return
+		}
 	}
 
 Loop:
