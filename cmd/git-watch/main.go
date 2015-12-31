@@ -83,7 +83,9 @@ func main() {
 
 	// startup other repos
 	for _, gitrepo := range cfg.GitRepos {
-		cfg2 := &(*cfg)
+		cfg_copy := *cfg
+		cfg2 := &cfg_copy
+
 		cfg2.Dir = gitrepo
 
 		gw := git.NewGitWatch(cfg2.Dir, cfg2.LocalBranch)
