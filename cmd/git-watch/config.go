@@ -24,12 +24,27 @@ type GitWatchConfig struct {
 	UpdateCmd   string
 	InstallCmd  string
 	LocalBranch string
+
+	HttpServerAddr string
+	StaticDir      string
+	InotifyDir     string
 }
 
 func DefaultGitWatchConfig() *GitWatchConfig {
 	return &GitWatchConfig{
-		CheckInterval: 1,
-		LocalBranch:   "master",
+		LogLevel: "error",
+		// LogLevels:
+		CheckInterval: 5,
+		Dir:           ".",
+		// GitRepos:
+		// InheritEnv:
+		ExecCmd:        "make run",
+		UpdateCmd:      "make",
+		InstallCmd:     "make install",
+		LocalBranch:    "master",
+		HttpServerAddr: "",
+		StaticDir:      "static",
+		InotifyDir:     "",
 	}
 }
 

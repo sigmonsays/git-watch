@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,12 +24,25 @@ func main() {
 	quit := make(chan bool)
 
 	var check_interval int
-	var configfile string
-	flag.IntVar(&check_interval, "check", 30, "git check interval")
-	flag.StringVar(&configfile, "config", "git-watch.yaml", "git watch config")
+	var configfile = "git-watch.yaml"
+	cfg := DefaultGitWatchConfig()
+
+	flag.IntVar(&check_interval, "check", cfg.CheckInterval, "git check interval (seconds)")
+	flag.StringVar(&configfile, "config", configfile, "git watch config")
+	flag.StringVar(&cfg.Dir, "dir", cfg.Dir, "change directory before starting")
+	flag.StringVar(&cfg.LocalBranch, "branch", cfg.LocalBranch, "local branch")
+	flag.StringVar(&cfg.ExecCmd, "exec-cmd", cfg.ExecCmd, "exec command")
+	flag.StringVar(&cfg.UpdateCmd, "update-cmd", cfg.UpdateCmd, "update command")
+	flag.StringVar(&cfg.InstallCmd, "install-cmd", cfg.InstallCmd, "install command")
+	flag.StringVar(&cfg.HttpServerAddr, "http", cfg.HttpServerAddr, "start a http server")
+	// TODO: env
+	flag.BoolVar(&cfg.InheritEnv, "inherit-env", cfg.InheritEnv, "inherit environment")
+	flag.StringVar(&cfg.StaticDir, "static-dir", cfg.StaticDir, "static directory")
+	flag.StringVar(&cfg.StaticDir, "inotify-dir", cfg.InotifyDir, "use inotify as a trigger in directory")
+	flag.StringVar(&cfg.LogLevel, "loglevel", cfg.LogLevel, "set log level")
+
 	flag.Parse()
 
-	cfg := DefaultGitWatchConfig()
 	if check_interval > 0 {
 		cfg.CheckInterval = check_interval
 	}
@@ -87,6 +101,19 @@ func main() {
 			log.Infof("start: %s", err)
 			return
 		}
+	}
+
+	if cfg.HttpServerAddr != "" {
+		Printf("Starting http server at %s\n", cfg.HttpServerAddr)
+		http.Handle("/", http.FileServer(http.Dir(cfg.StaticDir)))
+
+		go func() {
+			err := http.ListenAndServe(cfg.HttpServerAddr, nil)
+			if err != nil {
+				Printf("Starting http server at %s error %s\n", cfg.HttpServerAddr, err)
+				os.Exit(1)
+			}
+		}()
 	}
 
 Loop:
