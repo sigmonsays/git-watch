@@ -81,7 +81,7 @@ func loop(watch *GitWatch, err_chan chan error) {
 	log.Infof("watching %s directory for changes", dir)
 
 	reload_interval := time.Duration(interval) * time.Second
-	log.Debugf("reload interval %s", reload_interval)
+	log.Debugf("dir:%s reload interval %s", dir, reload_interval)
 	reload := time.NewTicker(reload_interval)
 	for {
 		select {
@@ -90,17 +90,17 @@ func loop(watch *GitWatch, err_chan chan error) {
 			rhash := remote_hash(dir, branch)
 			lhash := local_hash(dir, branch)
 
-			log.Debugf("git directory:%s lhash:%s rhash:%s", dir, lhash, rhash)
+			log.Debugf("dir: %s: hash lhash:%s rhash:%s", dir, lhash, rhash)
 
 			if len(rhash) == 0 || len(lhash) == 0 {
 				continue
 			}
 
 			if rhash != lhash {
-				log.Infof("Code change detected, remote hash %s != local %s\n", rhash, lhash)
+				log.Infof("dir=%s: Code change detected, remote hash %s != local %s\n", dir, rhash, lhash)
 				err := watch.OnChange(dir, branch, lhash, rhash)
 				if err != nil {
-					log.Infof("Error updating code, skipping reload: %s\n", err)
+					log.Infof("dir=%s: Error updating code, skipping reload: %s\n", dir, err)
 					continue
 				}
 			}
