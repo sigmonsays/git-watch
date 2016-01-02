@@ -22,6 +22,7 @@ func main() {
 
 	done := make(chan bool)
 	quit := make(chan bool)
+	result := make(chan int)
 
 	var check_interval int
 	var configfile = "git-watch.yaml"
@@ -40,6 +41,7 @@ func main() {
 	flag.StringVar(&cfg.StaticDir, "static-dir", cfg.StaticDir, "static directory")
 	flag.StringVar(&cfg.StaticDir, "inotify-dir", cfg.InotifyDir, "use inotify as a trigger in directory")
 	flag.StringVar(&cfg.LogLevel, "loglevel", cfg.LogLevel, "set log level")
+	flag.BoolVar(&cfg.Once, "once", cfg.Once, "run once and exit")
 
 	flag.Parse()
 
@@ -63,47 +65,62 @@ func main() {
 		os.Chdir(cfg.Dir)
 	}
 
-	go program(cfg, cfg.ExecCmd, done, quit)
-
-	gw := git.NewGitWatch(cfg.Dir, cfg.LocalBranch)
-	gw.Interval = cfg.CheckInterval
-	gw.OnChange = func(dir, branch, lhash, rhash string) error {
-		err := do_update(cfg)
-		if err != nil {
-			return err
-		}
-		quit <- true
-		return nil
-	}
-	err = gw.Start()
-	if err != nil {
-		log.Infof("start: %s", err)
-		return
+	if cfg.ExecCmd != "" {
+		go program(cfg, cfg.ExecCmd, done, quit)
 	}
 
-	// startup other repos
-	for _, gitrepo := range cfg.GitRepos {
-		cfg_copy := *cfg
-		cfg2 := &cfg_copy
+	var numWatches = 0
 
-		cfg2.Dir = gitrepo
+	// unique id received map
+	watches := make(map[int]*git.GitWatch, 0)
 
-		gw := git.NewGitWatch(cfg2.Dir, cfg2.LocalBranch)
-		gw.Interval = cfg2.CheckInterval
+	StartGitWatch := func(id int, cfg *GitWatchConfig) error {
+		gw := git.NewGitWatch(cfg.Dir, cfg.LocalBranch)
+		gw.Interval = cfg.CheckInterval
 		gw.OnChange = func(dir, branch, lhash, rhash string) error {
-			err := do_update(cfg2)
+			err := do_update(cfg)
 			if err != nil {
 				return err
 			}
 			quit <- true
 			return nil
 		}
+		gw.OnCheck = func(dir, branch, lhash, rhash string) error {
+			result <- id
+			return nil
+		}
 		err = gw.Start()
 		if err != nil {
 			log.Infof("start: %s", err)
-			return
+			return err
 		}
+		numWatches++
+		if _, found := watches[id]; found {
+			panic("watch already exists")
+		}
+		watches[id] = gw
+		return nil
 	}
+
+	if cfg.Dir != "" {
+		StartGitWatch(0, cfg)
+	}
+
+	// startup other repos
+	for n, gitrepo := range cfg.GitRepos {
+		var id = n + 1
+		cfg_copy := *cfg
+		cfg2 := &cfg_copy
+		cfg2.Dir = gitrepo
+
+		err = StartGitWatch(id, cfg2)
+		if err != nil {
+			log.Warnf("start %s: %s", cfg2.Dir, err)
+		}
+
+	}
+
+	log.Infof("started %d watched", numWatches)
 
 	if cfg.HttpServerAddr != "" {
 		Printf("Starting http server at %s\n", cfg.HttpServerAddr)
@@ -118,9 +135,25 @@ func main() {
 		}()
 	}
 
+	var remaining = numWatches
+
 Loop:
 	for {
 		select {
+		case id := <-result:
+			if cfg.Once {
+				watch, found := watches[id]
+				if found && watch.Stopped() == false {
+					watch.Stop()
+
+					remaining--
+					log.Debugf("Received update from watchId:%d remaining:%d", id, remaining)
+				}
+				if remaining == 0 {
+					break Loop
+				}
+			}
+
 		case <-done:
 			log.Infof("Restarting process..\n")
 			go program(cfg, cfg.ExecCmd, done, quit)

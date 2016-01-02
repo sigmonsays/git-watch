@@ -28,6 +28,7 @@ type GitWatchConfig struct {
 	HttpServerAddr string
 	StaticDir      string
 	InotifyDir     string
+	Once           bool
 }
 
 func DefaultGitWatchConfig() *GitWatchConfig {
