@@ -29,6 +29,7 @@ type GitWatchConfig struct {
 	StaticDir      string
 	InotifyDir     string
 	Once           bool
+	IntervalReload int
 }
 
 func DefaultGitWatchConfig() *GitWatchConfig {

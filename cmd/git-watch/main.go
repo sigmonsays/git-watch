@@ -2,12 +2,17 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"github.com/sigmonsays/git-watch/reload/git"
+	"github.com/sigmonsays/git-watch/watch"
+	"github.com/sigmonsays/git-watch/watch/git"
+	"github.com/sigmonsays/git-watch/watch/inotify"
+	"github.com/sigmonsays/git-watch/watch/timer"
 	"github.com/sigmonsays/go-logging"
 )
 
@@ -22,7 +27,7 @@ func main() {
 
 	done := make(chan bool)
 	quit := make(chan bool)
-	result := make(chan int)
+	result := make(chan string)
 
 	var check_interval int
 	var configfile = "git-watch.yaml"
@@ -72,9 +77,39 @@ func main() {
 	var numWatches = 0
 
 	// unique id received map
-	watches := make(map[int]*git.GitWatch, 0)
+	watches := make(map[string]watch.Watcher, 0)
 
-	StartGitWatch := func(id int, cfg *GitWatchConfig) error {
+	if cfg.InotifyDir != "" {
+		icfg := inotify.DefaultInotifyWatchConfig()
+		icfg.Dir = cfg.InotifyDir
+		iw := inotify.NewInotifyWatch(icfg)
+		err := iw.Start()
+		if err != nil {
+			log.Infof("start: %s", err)
+		}
+		watches["inotify"] = iw
+		iw.OnChange = func(ev *inotify.Event) error {
+			quit <- true
+			return nil
+		}
+	}
+
+	if cfg.IntervalReload > 0 {
+
+		iw := timer.NewIntervalReloader(time.Duration(cfg.IntervalReload) * time.Second)
+		err := iw.Start()
+		if err != nil {
+			log.Infof("start: %s", err)
+		}
+		iw.OnChange = func() error {
+			quit <- true
+			return nil
+		}
+		watches["timer"] = iw
+
+	}
+
+	StartGitWatch := func(id string, cfg *GitWatchConfig) error {
 		gw := git.NewGitWatch(cfg.Dir, cfg.LocalBranch)
 		gw.Interval = cfg.CheckInterval
 		gw.OnChange = func(dir, branch, lhash, rhash string) error {
@@ -103,17 +138,18 @@ func main() {
 	}
 
 	if cfg.Dir != "" {
-		StartGitWatch(0, cfg)
+		StartGitWatch("dir", cfg)
 	}
 
 	// startup other repos
 	for n, gitrepo := range cfg.GitRepos {
 		var id = n + 1
+		name := fmt.Sprintf("watch-%d", id)
 		cfg_copy := *cfg
 		cfg2 := &cfg_copy
 		cfg2.Dir = gitrepo
 
-		err = StartGitWatch(id, cfg2)
+		err = StartGitWatch(name, cfg2)
 		if err != nil {
 			log.Warnf("start %s: %s", cfg2.Dir, err)
 		}
