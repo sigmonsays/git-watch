@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"syscall"
+	"text/template"
 	"time"
 
 	"github.com/sigmonsays/git-watch/watch"
@@ -141,19 +145,54 @@ func main() {
 		StartGitWatch("dir", cfg)
 	}
 
+	// mapping of directory to repo spec
+	repo_paths := make(map[string]*RepoSpec, 0)
+
+	// merge in .GitRepos into the repositories struct
+	for _, gitrepo := range cfg.GitRepos {
+		repo, found := repo_paths[gitrepo]
+		if found {
+
+			continue
+		}
+
+		repo = &RepoSpec{
+			Directory: gitrepo,
+			// Origin: left blank intentionally
+		}
+		cfg.Repositories = append(cfg.Repositories, repo)
+	}
+
 	// startup other repos
-	for n, gitrepo := range cfg.GitRepos {
+	for n, repo := range cfg.Repositories {
 		var id = n + 1
 		name := fmt.Sprintf("watch-%d", id)
 		cfg_copy := *cfg
 		cfg2 := &cfg_copy
-		cfg2.Dir = gitrepo
+		cfg2.Dir = repo.Directory
+
+		// clone repo if it does not exist
+		var doSetup bool
+		st, err := os.Stat(repo.Directory)
+		if err != nil && os.IsNotExist(err) {
+			doSetup = true
+		}
+
+		if err == nil && st.IsDir() == false {
+			doSetup = false
+		}
+
+		if doSetup {
+			err = setupRepo(cfg, repo)
+			if err != nil {
+				continue
+			}
+		}
 
 		err = StartGitWatch(name, cfg2)
 		if err != nil {
 			log.Warnf("start %s: %s", cfg2.Dir, err)
 		}
-
 	}
 
 	log.Infof("started %d watched", numWatches)
@@ -205,4 +244,55 @@ Loop:
 		}
 	}
 
+}
+
+type CloneTemplate struct {
+	Basename string
+}
+
+func setupRepo(cfg *GitWatchConfig, repo *RepoSpec) error {
+
+	var remote string
+
+	if repo.Origin == "" {
+
+		origin_template, found := cfg.OriginTemplates["default"]
+		if found == false {
+			log.Warnf("unable to setup repo %s: no default origin template to clone from", repo.Directory)
+			return nil
+		}
+		tmpl := template.Must(template.New("template").Parse(origin_template))
+
+		tmplData := &CloneTemplate{
+			Basename: filepath.Base(repo.Directory),
+		}
+
+		var buf bytes.Buffer
+		err := tmpl.Execute(&buf, tmplData)
+		if err != nil {
+			return nil
+		}
+
+		remote = buf.String()
+
+	} else {
+		remote = repo.Origin
+	}
+
+	cmdline := []string{
+		"git",
+		"clone",
+		remote,
+		repo.Directory,
+	}
+	log.Infof("clone %s", cmdline)
+
+	cmd := exec.Command(cmdline[0], cmdline[1:]...)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+
+	return err
 }

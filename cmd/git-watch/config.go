@@ -7,6 +7,14 @@ import (
 	"os"
 )
 
+type RepoSpec struct {
+	// directory where the repo should live
+	Directory string
+
+	// the remote we'll clone from
+	Origin string `yaml:"origin,omitempty"`
+}
+
 type GitWatchConfig struct {
 	LogLevel  string
 	LogLevels map[string]string
@@ -15,6 +23,9 @@ type GitWatchConfig struct {
 
 	Dir string
 	Env []string
+
+	OriginTemplates map[string]string `yaml:"origin_templates"`
+	Repositories    []*RepoSpec
 
 	GitRepos []string
 
@@ -47,6 +58,7 @@ func DefaultGitWatchConfig() *GitWatchConfig {
 		HttpServerAddr: "",
 		StaticDir:      "static",
 		InotifyDir:     "",
+		GitRepos:       make([]string, 0),
 	}
 }
 
