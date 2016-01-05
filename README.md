@@ -14,12 +14,12 @@ features
 install/Upgrade
 =============================
 
+Install or Upgrade
+
     export GOPATH=$HOME/go
-    go get github.com/sigmonsays/git-watch/git-watch/...
+    go get -u github.com/sigmonsays/git-watch/cmd/git-watch
 
-To upgrade
 
-    go get -u github.com/sigmonsays/git-watch/git-watch/...
 
 pre-compiled binaries    
 =============================
