@@ -11,10 +11,15 @@ features
 - intelligent restart
   - if install fails, we do not restart
 
-install
+install/Upgrade
 =============================
 
+    export GOPATH=$HOME/go
     go get github.com/sigmonsays/git-watch/git-watch/...
+
+To upgrade
+
+    go get -u github.com/sigmonsays/git-watch/git-watch/...
 
 pre-compiled binaries    
 =============================
@@ -22,6 +27,7 @@ See http://gobuild.io/github.com/sigmonsays/git-watch/git-watch
    
 quickstart
 =============================
+
 
 Usage:
 
