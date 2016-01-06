@@ -64,7 +64,9 @@ func main() {
 		return
 	}
 
-	cfg.PrintConfig()
+	if log.IsDebug() {
+		cfg.PrintConfig()
+	}
 
 	logging.SetLogLevel(cfg.LogLevel)
 	logging.SetLogLevels(cfg.LogLevels)
