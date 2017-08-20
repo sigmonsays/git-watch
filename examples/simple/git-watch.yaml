@@ -1,0 +1,5 @@
+checkinterval: 5
+localbranch: master
+updatecmd: make
+httpserveraddr: ":8888"
+
