@@ -148,7 +148,8 @@ Loop:
 			}
 
 			if rhash != lhash {
-				log.Infof("dir=%s: Code change detected, remote hash %s != local %s\n", dir, rhash, lhash)
+				log.Infof("dir=%s: Code change detected", dir)
+				log.Tracef("remote hash %s != local %s\n", rhash, lhash)
 				err = watch.OnChange(dir, branch, lhash, rhash)
 				if err != nil {
 					log.Infof("dir=%s: Error updating code, skipping reload: %s\n", dir, err)

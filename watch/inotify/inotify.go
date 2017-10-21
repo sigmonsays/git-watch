@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"golang.org/x/exp/inotify"
+	"github.com/fsnotify/fsnotify"
 )
 
 func NewInotifyWatch(cfg *InotifyWatchConfig) *InotifyWatch {
@@ -19,7 +19,7 @@ func NewInotifyWatch(cfg *InotifyWatchConfig) *InotifyWatch {
 }
 
 type Event struct {
-	*inotify.Event
+	*fsnotify.Event
 }
 
 type InotifyWatch struct {
@@ -67,15 +67,13 @@ func (me *InotifyWatch) Stopped() bool {
 
 func loop(watch *InotifyWatch, dir string, quit chan bool) {
 
-	watcher, err := inotify.NewWatcher()
+	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Warnf("inotify error: %s", err)
 		return
 	}
 
-	flags := inotify.IN_MODIFY
-
-	err = watcher.AddWatch(dir, flags)
+	err = watcher.Add(dir)
 	if err != nil {
 		log.Warnf("inotify watch error: %s", err)
 		return
@@ -85,20 +83,20 @@ func loop(watch *InotifyWatch, dir string, quit chan bool) {
 
 	for {
 		select {
-		case ev := <-watcher.Event:
+		case ev := <-watcher.Events:
 			log.Debugf("inotify event %v", ev)
 			if strings.HasPrefix(filepath.Base(ev.Name), ".") {
 				continue
 			}
+			event := &Event{&ev}
 
-			event := &Event{ev}
 			err := watch.OnChange(event)
 			if err != nil {
 				log.Warnf("Error updating, skipping reload: %s", err)
 				continue
 			}
 			quit <- true
-		case err := <-watcher.Error:
+		case err := <-watcher.Errors:
 			log.Infof("inotify error: %s", err)
 		}
 
