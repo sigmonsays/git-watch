@@ -11,6 +11,13 @@ import (
 type ChangeFunc func(dir, branch, lhash, rhash string) error
 type CheckFunc func(dir, branch, lhash, rhash string) error
 
+func NoChangeFunc(dir, branch, lhash, rhash string) error {
+	return nil
+}
+func NoCheckFunc(dir, branch, lhash, rhash string) error {
+	return nil
+}
+
 type GitWatch struct {
 	Dir      string
 	Branch   string
@@ -32,8 +39,18 @@ func NewGitWatch(dir, branch string) *GitWatch {
 	return w
 }
 
+func (w *GitWatch) prepare() error {
+	if w.OnChange == nil {
+		w.OnChange = NoChangeFunc
+	}
+	if w.OnCheck == nil {
+		w.OnCheck = NoCheckFunc
+	}
+	return nil
+}
 func (w *GitWatch) Start() error {
 	err := make(chan error, 1)
+	w.prepare()
 	go loop(w, err)
 	res := <-err
 	if res == nil {
