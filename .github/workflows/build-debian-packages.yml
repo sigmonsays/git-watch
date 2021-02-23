@@ -2,7 +2,7 @@ name: Build debian package (.deb)
 
 on:
   push:
-    branches: [ master ]
+    #branches: [ master ]
     tags: [ 'v*' ]
 
 jobs:
