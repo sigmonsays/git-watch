@@ -4,6 +4,8 @@ github.com/sigmonsays/go-logging v0.0.0-20170415192813-93f4813d2694 h1:Mj7zYpc19
 github.com/sigmonsays/go-logging v0.0.0-20170415192813-93f4813d2694/go.mod h1:6+xYjK0jIspthgQ2ScYbhbfKk/rAbwkniV704uQJsxA=
 golang.org/x/sys v0.0.0-20191005200804-aed5e4c7ecf9 h1:L2auWcuQIvxz9xSEqzESnV/QN/gNRXNApHi3fYwl2w0=
 golang.org/x/sys v0.0.0-20191005200804-aed5e4c7ecf9/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.2.0 h1:ljd4t30dBnAvMZaQCevtY0xLLD0A+bRZXbgLMLU1F/A=
+golang.org/x/sys v0.2.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 launchpad.net/gocheck v0.0.0-20140225173054-000000000087 h1:Izowp2XBH6Ya6rv+hqbceQyw/gSGoXfH/UPoTGduL54=
 launchpad.net/gocheck v0.0.0-20140225173054-000000000087/go.mod h1:hj7XX3B/0A+80Vse0e+BUHsHMTEhd0O4cpUHr/e/BUM=
 launchpad.net/goyaml v0.0.0-20140305200416-000000000051 h1:pgtOxpWGtZwl5VEGtXB3s+VPsO3QzsZPg4/AS0Ag9HI=
