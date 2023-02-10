@@ -58,10 +58,12 @@ func main() {
 		cfg.CheckInterval = check_interval
 	}
 
-	err := cfg.FromFile(configfile)
-	if err != nil {
-		log.Infof("error: %s: %s\n", configfile, err)
-		return
+	if configfile != "" {
+		err := cfg.FromFile(configfile)
+		if err != nil {
+			log.Infof("error: %s: %s\n", configfile, err)
+			return
+		}
 	}
 
 	if log.IsDebug() {
@@ -130,7 +132,7 @@ func main() {
 			result <- id
 			return nil
 		}
-		err = gw.Start()
+		err := gw.Start()
 		if err != nil {
 			log.Infof("start: %s", err)
 			return err
@@ -233,8 +235,11 @@ Loop:
 
 		case <-done:
 			log.Infof("Restarting process..\n")
-			go program(cfg, cfg.ExecCmd, done, quit)
+			if cfg.ExecCmd != "" {
+				go program(cfg, cfg.ExecCmd, done, quit)
+			}
 		case signum := <-sig:
+
 			log.Infof("Got signal %d\n", signum)
 			if signum == syscall.SIGHUP {
 				quit <- true
