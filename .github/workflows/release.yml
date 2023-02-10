@@ -105,8 +105,9 @@ jobs:
         goarch: [amd64]
     steps:
     - uses: actions/checkout@v2
-    - uses: wangyoucao577/go-release-action@v1.14
+    - uses: wangyoucao577/go-release-action@v1.35
       with:
+        goversion: 1.18
         github_token: ${{ secrets.GITHUB_TOKEN }}
         project_path: ./cmd/git-watch
         binary_name: git-watch
